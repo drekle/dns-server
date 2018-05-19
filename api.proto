@@ -1,0 +1,30 @@
+// Generate by 
+// Google API's
+//
+// protoc api.proto -IC:\Users\dlemon\go\src\github.com\googleapis\googleapis -I. --go_out=plugins=grpc:lib/go/v1
+// protoc api.proto -IC:\Users\dlemon\go\src\github.com\googleapis\googleapis -I. --grpc-gateway_out=lib/go/v1
+// protoc api.proto -I. -IC:\Users\dlemon\go\src\github.com\googleapis\googleapis --swagger_out=swagger
+// go generate .
+
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+package v1;
+
+service DNSService { 
+    rpc PutRecord(Entry) returns (Entry) { option (google.api.http) = { put: "/v1/record" body: "*" }; } 
+    rpc PostRecord(Entry) returns (Entry) { option (google.api.http) = { post: "/v1/record" body: "*" }; }
+    rpc GetRecord(Entry) returns (Entries) { option (google.api.http) = { get: "/v1/record" }; }
+    rpc DeleteRecord(Entry) returns (Entry) { option (google.api.http) = { delete: "/v1/record" }; } 
+} 
+
+message Entry { 
+    string name = 1; 
+    string address = 2;
+}
+
+message Entries {
+    repeated Entry entries = 1;
+}
+
