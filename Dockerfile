@@ -1,3 +1,3 @@
 FROM scratch
-ADD lemondns /
-ENTRYPOINT [ "/lemondns" ]
+ADD dns /
+ENTRYPOINT [ "/dns" ]
