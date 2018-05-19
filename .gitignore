@@ -1,4 +1,5 @@
 debug**
 .vscode**
-lemondns
-lemondns.exe
+dns-server
+dns-server.exe
+vendor/**
