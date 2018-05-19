@@ -5,9 +5,9 @@ import (
 	"log"
 	"net"
 
-	"bitbucket.ema.emoneyadvisor.com/cp/lemondns/lib/go/v1"
-	impl "bitbucket.ema.emoneyadvisor.com/cp/lemondns/store"
-	"bitbucket.ema.emoneyadvisor.com/cp/lemondns/store/database"
+	"github.com/drekle/dns-server/pkg/lib/go/v1"
+	impl "github.com/drekle/dns-server/store"
+	"github.com/drekle/dns-server/store/database"
 	"github.com/miekg/dns"
 )
 

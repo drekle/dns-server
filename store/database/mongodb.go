@@ -4,10 +4,10 @@ import (
 	"context"
 	"log"
 
-	impl "bitbucket.ema.emoneyadvisor.com/cp/lemondns/store"
+	impl "github.com/drekle/dns-server/store"
 
 	"github.com/miekg/dns"
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
