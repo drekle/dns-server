@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"bitbucket.ema.emoneyadvisor.com/cp/lemondns/pkg/ui/data/swagger"
+	"github.com/drekle/dns-server/pkg/ui/data/swagger"
 
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/philips/go-bindata-assetfs"
@@ -19,7 +19,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	pb "bitbucket.ema.emoneyadvisor.com/cp/lemondns/lib/go/v1"
+	pb "github.com/drekle/dns-server/pkg/lib/go/v1"
 	"github.com/miekg/dns"
 )
 
