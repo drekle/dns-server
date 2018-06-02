@@ -88,7 +88,7 @@ func startGRPCServer(port string, dnsServer *server) *grpc.Server {
 
 func main() {
 	grpcPort := flag.String("port", ":50051", "port which grpc listens.")
-	database := flag.String("database", "mongodb", "port which grpc listens.")
+	database := flag.String("database", "localhost", "port which grpc listens.")
 	flag.Parse()
 
 	//Listen on 53 TCP/UDP for dns forever

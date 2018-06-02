@@ -26,10 +26,6 @@
 
 
 [[constraint]]
-  branch = "feature/api_refactor"
-  name = "github.com/drekle/dns-server"
-
-[[constraint]]
   name = "github.com/golang/protobuf"
   version = "1.1.0"
 

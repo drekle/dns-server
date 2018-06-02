@@ -38,13 +38,13 @@ func (s *server) ServeDNS(w dns.ResponseWriter, req *dns.Msg) {
 	m := new(dns.Msg)
 	m.SetReply(req)
 
-	q, err := s.store.ReadRecord(context.Background(), req.Question[0].Name)
+	rrList, err := s.store.ReadRecord(context.Background(), req.Question[0].Name)
 	if err != nil {
 		log.Println("There was an error reading the resource records during a DNS lookup: ", err)
 	}
-	m.Answer = make([]dns.RR, len(q.RR))
-	for index, rr := range q.RR {
-		m.Answer[index] = &rr
+	m.Answer = make([]dns.RR, len(rrList))
+	for index, rr := range rrList {
+		m.Answer[index] = rr
 	}
 	w.WriteMsg(m)
 }
@@ -69,19 +69,23 @@ func newResourceRecordForName(name string, address string) *dns.A {
 
 func (s *server) PostRecord(ctx context.Context, entry *v1.Entry) (*v1.Entry, error) {
 	a := newResourceRecordForName(entry.Name, entry.Address)
-	s.store.UpdateRecord(ctx, *a)
+	s.store.UpdateRecord(ctx, a)
 	return entry, nil
 }
 
 func (s *server) GetRecord(ctx context.Context, entry *v1.Entry) (*v1.Entries, error) {
 	var ret v1.Entries
 
-	q, err := s.store.ReadRecord(ctx, entry.Name)
-	if err == nil {
-		for _, a := range q.RR {
+	rrList, err := s.store.ReadRecord(ctx, entry.Name)
+	if err != nil {
+		log.Println(err)
+	}
+
+	for _, rr := range rrList {
+		if aRecord, ok := (rr).(*dns.A); ok {
 			ret.Entries = append(ret.Entries, &v1.Entry{
-				Name:    a.Header().Name,
-				Address: a.A.To4().String(),
+				Name:    aRecord.Header().Name,
+				Address: aRecord.A.To4().String(),
 			})
 		}
 	}
@@ -91,25 +95,26 @@ func (s *server) GetRecord(ctx context.Context, entry *v1.Entry) (*v1.Entries, e
 //Replace
 func (s *server) PutRecord(ctx context.Context, entry *v1.Entry) (*v1.Entry, error) {
 	rr := newResourceRecordForName(entry.Name, entry.Address)
-	s.store.CreateRecord(ctx, *rr)
+	s.store.CreateRecord(ctx, rr)
 	return entry, nil
 }
 
 func (s *server) DeleteRecord(ctx context.Context, entry *v1.Entry) (*v1.Entry, error) {
-	q, err := s.store.ReadRecord(ctx, entry.Name)
-	if err != nil {
-		log.Println(err)
-		return &v1.Entry{}, nil
-	}
-	for _, a := range q.RR {
-		// A record
-		if entry.Address == a.A.To4().String() {
-			_, err = s.store.DeleteRecord(ctx, a)
-			if err != nil {
-				log.Println("Failed to delete record: ", err)
-			}
-		}
+	// q, err := s.store.ReadRecord(ctx, entry.Name)
+	// if err != nil {
+	// 	log.Println(err)
+	// 	return &v1.Entry{}, nil
+	// }
+	//TODO:
+	// for _, a := range q.RR {
+	// 	// A record
+	// 	if entry.Address == a.A.To4().String() {
+	// 		_, err = s.store.DeleteRecord(ctx, a)
+	// 		if err != nil {
+	// 			log.Println("Failed to delete record: ", err)
+	// 		}
+	// 	}
 
-	}
+	// }
 	return &v1.Entry{}, nil
 }

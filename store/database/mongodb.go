@@ -32,7 +32,7 @@ func NewMongoDBStore(address string) *MongoDB {
 	return &ret
 }
 
-func (store *MongoDB) CreateRecord(ctx context.Context, rr dns.A) (*impl.Query, error) {
+func (store *MongoDB) CreateRecord(ctx context.Context, rr dns.RR) (dns.RR, error) {
 
 	session, err := mgo.Dial(store.address)
 	if err != nil {
@@ -40,23 +40,19 @@ func (store *MongoDB) CreateRecord(ctx context.Context, rr dns.A) (*impl.Query, 
 	}
 	defer session.Close()
 
-	var q impl.Query
-	q.Name = rr.Header().Name
-	q.RR = []dns.A{rr}
-
 	collection := session.DB(tableName).C(collectionName)
 	bulk := collection.Bulk()
-	bulk.Remove(bson.M{"name": q.Name})
-	bulk.Insert(&q)
+	bulk.RemoveAll(bson.M{"hdr.name": rr.Header().Name})
+	bulk.Insert(&rr)
 	_, err = bulk.Run()
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
-	return &q, nil
+	return rr, nil
 }
 
-func (store *MongoDB) ReadRecord(ctx context.Context, name string) (*impl.Query, error) {
+func (store *MongoDB) ReadRecord(ctx context.Context, name string) ([]dns.RR, error) {
 
 	session, err := mgo.Dial(store.address)
 	if err != nil {
@@ -64,25 +60,175 @@ func (store *MongoDB) ReadRecord(ctx context.Context, name string) (*impl.Query,
 	}
 	defer session.Close()
 
-	var qs []*impl.Query
+	var qs []dns.RR
 	collection := session.DB(tableName).C(collectionName)
+	query := collection.Find(bson.M{"hdr.name": name})
 	if name == "" {
-		//All records
-		collection.Find(nil).All(&qs)
-	} else {
-		err = collection.Find(bson.M{"name": name}).All(&qs)
-		if err != nil {
-			log.Println(err)
-			return nil, err
+		query = collection.Find(nil)
+	}
+
+	//cant RR interface here because of marshalling
+	//Use any records to get the headers
+	var any []*dns.ANY
+	err = query.All(&any)
+	if err != nil {
+		return qs, err
+	}
+
+	types := make(map[uint16]bool, 0)
+	for _, record := range any {
+		types[record.Header().Rrtype] = true
+	}
+
+	//iterate through all types and query for each record
+	for recordType := range types {
+		switch recordType {
+		case dns.TypeA:
+			var records []*dns.A
+			query.All(&records)
+			for _, record := range records {
+				qs = append(qs, record)
+			}
+			// case dns.TypeAAAA:
+			// 	breakoutRecords(query, []*dns.AAAA{}, "", "\t")
+			// case dns.TypeAFSDB:
+			// 	breakoutRecords(query, []*dns.AFSDB{}, "", "\t")
+			// case dns.TypeANY:
+			// 	breakoutRecords(query, []*dns.ANY{}, "", "\t")
+			// case dns.TypeAVC:
+			// 	breakoutRecords(query, []*dns.AVC{}, "", "\t")
+			// case dns.TypeCAA:
+			// 	breakoutRecords(query, []*dns.CAA{}, "", "\t")
+			// case dns.TypeCDNSKEY:
+			// 	breakoutRecords(query, []*dns.CDNSKEY{}, "", "\t")
+			// case dns.TypeCDS:
+			// 	breakoutRecords(query, []*dns.CDS{}, "", "\t")
+			// case dns.TypeCERT:
+			// 	breakoutRecords(query, []*dns.CERT{}, "", "\t")
+			// case dns.TypeCNAME:
+			// 	breakoutRecords(query, []*dns.CNAME{}, "", "\t")
+			// case dns.TypeCSYNC:
+			// 	breakoutRecords(query, []*dns.CSYNC{}, "", "\t")
+			// case dns.TypeDHCID:
+			// 	breakoutRecords(query, []*dns.DHCID{}, "", "\t")
+			// case dns.TypeDLV:
+			// 	breakoutRecords(query, []*dns.DLV{}, "", "\t")
+			// case dns.TypeDNAME:
+			// 	breakoutRecords(query, []*dns.DNAME{}, "", "\t")
+			// case dns.TypeDNSKEY:
+			// 	breakoutRecords(query, []*dns.DNSKEY{}, "", "\t")
+			// case dns.TypeDS:
+			// 	breakoutRecords(query, []*dns.DS{}, "", "\t")
+			// case dns.TypeEID:
+			// 	breakoutRecords(query, []*dns.EID{}, "", "\t")
+			// case dns.TypeEUI48:
+			// 	breakoutRecords(query, []*dns.EUI48{}, "", "\t")
+			// case dns.TypeEUI64:
+			// 	breakoutRecords(query, []*dns.EUI64{}, "", "\t")
+			// case dns.TypeGID:
+			// 	breakoutRecords(query, []*dns.GID{}, "", "\t")
+			// case dns.TypeGPOS:
+			// 	breakoutRecords(query, []*dns.GPOS{}, "", "\t")
+			// case dns.TypeHINFO:
+			// 	breakoutRecords(query, []*dns.HINFO{}, "", "\t")
+			// case dns.TypeHIP:
+			// 	breakoutRecords(query, []*dns.HIP{}, "", "\t")
+			// case dns.TypeKEY:
+			// 	breakoutRecords(query, []*dns.KEY{}, "", "\t")
+			// case dns.TypeKX:
+			// 	breakoutRecords(query, []*dns.KX{}, "", "\t")
+			// case dns.TypeL32:
+			// 	breakoutRecords(query, []*dns.L32{}, "", "\t")
+			// case dns.TypeL64:
+			// 	breakoutRecords(query, []*dns.L64{}, "", "\t")
+			// case dns.TypeLOC:
+			// 	breakoutRecords(query, []*dns.LOC{}, "", "\t")
+			// case dns.TypeLP:
+			// 	breakoutRecords(query, []*dns.LP{}, "", "\t")
+			// case dns.TypeMB:
+			// 	breakoutRecords(query, []*dns.MB{}, "", "\t")
+			// case dns.TypeMD:
+			// 	breakoutRecords(query, []*dns.MD{}, "", "\t")
+			// case dns.TypeMF:
+			// 	breakoutRecords(query, []*dns.MF{}, "", "\t")
+			// case dns.TypeMG:
+			// 	breakoutRecords(query, []*dns.MG{}, "", "\t")
+			// case dns.TypeMINFO:
+			// 	breakoutRecords(query, []*dns.MINFO{}, "", "\t")
+			// case dns.TypeMR:
+			// 	breakoutRecords(query, []*dns.MR{}, "", "\t")
+			// case dns.TypeMX:
+			// 	breakoutRecords(query, []*dns.MX{}, "", "\t")
+			// case dns.TypeNAPTR:
+			// 	breakoutRecords(query, []*dns.NAPTR{}, "", "\t")
+			// case dns.TypeNID:
+			// 	breakoutRecords(query, []*dns.NID{}, "", "\t")
+			// case dns.TypeNIMLOC:
+			// 	breakoutRecords(query, []*dns.NIMLOC{}, "", "\t")
+			// case dns.TypeNINFO:
+			// 	breakoutRecords(query, []*dns.NINFO{}, "", "\t")
+			// case dns.TypeNS:
+			// 	breakoutRecords(query, []*dns.NS{}, "", "\t")
+			// case dns.TypeNSAPPTR:
+			// 	breakoutRecords(query, []*dns.NSAPPTR{}, "", "\t")
+			// case dns.TypeNSEC:
+			// 	breakoutRecords(query, []*dns.NSEC{}, "", "\t")
+			// case dns.TypeNSEC3:
+			// 	breakoutRecords(query, []*dns.NSEC3{}, "", "\t")
+			// case dns.TypeNSEC3PARAM:
+			// 	breakoutRecords(query, []*dns.NSEC3PARAM{}, "", "\t")
+			// case dns.TypeOPENPGPKEY:
+			// 	breakoutRecords(query, []*dns.OPENPGPKEY{}, "", "\t")
+			// case dns.TypeOPT:
+			// 	breakoutRecords(query, []*dns.OPT{}, "", "\t")
+			// case dns.TypePTR:
+			// 	breakoutRecords(query, []*dns.PTR{}, "", "\t")
+			// case dns.TypePX:
+			// 	breakoutRecords(query, []*dns.PX{}, "", "\t")
+			// case dns.TypeRKEY:
+			// 	breakoutRecords(query, []*dns.RKEY{}, "", "\t")
+			// case dns.TypeRP:
+			// 	breakoutRecords(query, []*dns.RP{}, "", "\t")
+			// case dns.TypeRRSIG:
+			// 	breakoutRecords(query, []*dns.RRSIG{}, "", "\t")
+			// case dns.TypeRT:
+			// 	breakoutRecords(query, []*dns.RT{}, "", "\t")
+			// case dns.TypeSIG:
+			// 	breakoutRecords(query, []*dns.SIG{}, "", "\t")
+			// case dns.TypeSMIMEA:
+			// 	breakoutRecords(query, []*dns.SMIMEA{}, "", "\t")
+			// case dns.TypeSOA:
+			// 	breakoutRecords(query, []*dns.SOA{}, "", "\t")
+			// case dns.TypeSPF:
+			// 	breakoutRecords(query, []*dns.SPF{}, "", "\t")
+			// case dns.TypeSRV:
+			// 	breakoutRecords(query, []*dns.SRV{}, "", "\t")
+			// case dns.TypeSSHFP:
+			// 	breakoutRecords(query, []*dns.SSHFP{}, "", "\t")
+			// case dns.TypeTA:
+			// 	breakoutRecords(query, []*dns.TA{}, "", "\t")
+			// case dns.TypeTALINK:
+			// 	breakoutRecords(query, []*dns.TALINK{}, "", "\t")
+			// case dns.TypeTKEY:
+			// 	breakoutRecords(query, []*dns.TKEY{}, "", "\t")
+			// case dns.TypeTLSA:
+			// 	breakoutRecords(query, []*dns.TLSA{}, "", "\t")
+			// case dns.TypeTSIG:
+			// 	breakoutRecords(query, []*dns.TSIG{}, "", "\t")
+			// case dns.TypeTXT:
+			// 	breakoutRecords(query, []*dns.TXT{}, "", "\t")
+			// case dns.TypeUID:
+			// 	breakoutRecords(query, []*dns.UID{}, "", "\t")
+			// case dns.TypeUINFO:
+			// 	breakoutRecords(query, []*dns.UINFO{}, "", "\t")
+			// case dns.TypeURI:
+			// 	breakoutRecords(query, []*dns.URI{}, "", "\t")
+			// case dns.TypeX25:
+			// 	breakoutRecords(query, []*dns.X25{}, "", "\t")
 		}
 	}
 
-	var q impl.Query
-	q.Name = name
-	for _, query := range qs {
-		q.RR = append(q.RR, query.RR...)
-	}
-	return &q, nil
+	return qs, nil
 }
 
 func AcontainsA(collection []dns.A, rr dns.A) bool {
@@ -94,7 +240,7 @@ func AcontainsA(collection []dns.A, rr dns.A) bool {
 	return false
 }
 
-func (store *MongoDB) UpdateRecord(ctx context.Context, rr dns.A) (*impl.Query, error) {
+func (store *MongoDB) UpdateRecord(ctx context.Context, rr dns.RR) (dns.RR, error) {
 
 	session, err := mgo.Dial(store.address)
 	if err != nil {
@@ -103,24 +249,7 @@ func (store *MongoDB) UpdateRecord(ctx context.Context, rr dns.A) (*impl.Query, 
 	defer session.Close()
 
 	collection := session.DB(tableName).C(collectionName)
-	oldq, err := store.ReadRecord(ctx, rr.Header().Name)
-
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			err = nil
-			//Just add
-			return store.CreateRecord(ctx, rr)
-		} else {
-			return nil, err
-		}
-	}
-
-	// update the old collection
-	if !AcontainsA(oldq.RR, rr) {
-		oldq.RR = append(oldq.RR, rr)
-	}
-
-	err = collection.Update(bson.M{"name": oldq.Name}, &oldq)
+	err = collection.Update(bson.M{"name": rr.Header().Name}, &rr)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return store.CreateRecord(ctx, rr)
@@ -128,11 +257,10 @@ func (store *MongoDB) UpdateRecord(ctx context.Context, rr dns.A) (*impl.Query, 
 			return nil, err
 		}
 	}
-	return oldq, nil
+	return rr, nil
 }
 
-func (store *MongoDB) DeleteRecord(ctx context.Context, rr dns.A) (*impl.Query, error) {
-	name := rr.Header().Name
+func (store *MongoDB) DeleteRecord(ctx context.Context, rr dns.RR) (dns.RR, error) {
 
 	session, err := mgo.Dial(store.address)
 	if err != nil {
@@ -140,44 +268,8 @@ func (store *MongoDB) DeleteRecord(ctx context.Context, rr dns.A) (*impl.Query, 
 	}
 	defer session.Close()
 
-	q, err := store.ReadRecord(ctx, name)
-	if err != nil {
-		log.Println(err)
-		return nil, err
-	}
-
-	var remove []int
-	for index, dbrr := range q.RR {
-		if rr.A.To4().String() == dbrr.A.To4().String() {
-			remove = append(remove, index)
-		}
-	}
-	var new impl.Query
-	new.Name = name
-	for index, rr := range q.RR {
-		keep := true
-		for _, removeIndex := range remove {
-			if index == removeIndex {
-				keep = false
-			}
-		}
-		if keep {
-			new.RR = append(new.RR, rr)
-		}
-	}
-
 	collection := session.DB(tableName).C(collectionName)
-	if len(new.RR) == 0 {
-		err = collection.Remove(bson.M{"name": name})
-		return q, err
-	}
-	for index, rr := range new.RR {
-		if index == 0 {
-			_, err = store.CreateRecord(ctx, rr)
-		} else {
-			_, err = store.UpdateRecord(ctx, rr)
-		}
-	}
+	err = collection.Remove(bson.M{"name": rr.Header().Name})
 
-	return q, err
+	return rr, err
 }
