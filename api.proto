@@ -1,10 +1,12 @@
 // Generate by 
 // Google API's
-//
-// protoc api.proto -IC:\Users\dlemon\go\src\github.com\googleapis\googleapis -I. --go_out=plugins=grpc:lib/go/v1
-// protoc api.proto -IC:\Users\dlemon\go\src\github.com\googleapis\googleapis -I. --grpc-gateway_out=lib/go/v1
-// protoc api.proto -I. -IC:\Users\dlemon\go\src\github.com\googleapis\googleapis --swagger_out=swagger
-// go generate .
+/*
+protoc api.proto -IC:\Users\derle\go\src\github.com\googleapis\googleapis -I. --go_out=plugins=grpc:pkg/lib/go/v1
+protoc api.proto -IC:\Users\derle\go\src\github.com\googleapis\googleapis -I. --grpc-gateway_out=pkg/lib/go/v1
+protoc api.proto -I. -IC:\Users\derle\go\src\github.com\googleapis\googleapis --swagger_out=swagger
+go generate .
+
+*/
 
 syntax = "proto3";
 
@@ -13,18 +15,491 @@ import "google/api/annotations.proto";
 package v1;
 
 service DNSService { 
-    rpc PutRecord(Entry) returns (Entry) { option (google.api.http) = { put: "/v1/record" body: "*" }; } 
-    rpc PostRecord(Entry) returns (Entry) { option (google.api.http) = { post: "/v1/record" body: "*" }; }
-    rpc GetRecord(Entry) returns (Entries) { option (google.api.http) = { get: "/v1/record" }; }
-    rpc DeleteRecord(Entry) returns (Entry) { option (google.api.http) = { delete: "/v1/record" }; } 
+    rpc PutRecord(ResourceRecord) returns (ResourceRecord) { option (google.api.http) = { put: "/v1/record" body: "*" }; } 
+    rpc PostRecord(ResourceRecord) returns (ResourceRecord) { option (google.api.http) = { post: "/v1/record" body: "*" }; }
+    rpc GetRecord(Header) returns (ResourceRecords) { option (google.api.http) = { get: "/v1/record" }; }
+    rpc DeleteRecord(ResourceRecord) returns (ResourceRecord) { option (google.api.http) = { delete: "/v1/record" }; } 
 } 
 
-message Entry { 
+message Header {
     string name = 1; 
-    string address = 2;
+    uint32 ttl = 2;
 }
 
-message Entries {
-    repeated Entry entries = 1;
+message A {
+    string address = 1;
 }
 
+message AAAA { 
+    string address = 1;
+}
+
+message AFSDB { 
+    uint32 subtype = 1; // [default = 0];
+	string hostname = 2;
+}
+
+message AVC { 
+    repeated string txt = 1;
+}
+
+message CAA { 
+    uint32 flag = 1;
+    string tag = 2;
+    string value = 3;
+}
+
+message CDNSKEY {
+    uint32 flags = 1;
+    uint32 protocol = 2;
+    uint32 algorithm = 3;
+    string publicKey = 4;
+}
+
+message CDS {
+    uint32 keyTag = 1;
+    uint32 algorithm = 2;
+    uint32 digestType = 3;
+    string digest = 4;
+}
+
+message CERT {
+    uint32 keyTag = 1;
+    uint32 algorithm = 2;
+    string certificate = 3;
+    uint32 type = 4;
+}
+
+message CNAME {
+    string target = 1;
+}
+
+message CSYNC {
+    uint32 serial = 1;
+    uint32 flags = 2;
+    repeated uint32 typeBitMap = 3;
+}
+
+message DHCID {
+    string digest = 1;
+}
+
+message DLV {
+    uint32 keyTag = 1;
+    uint32 algorithm = 2;
+    uint32 digestType = 3;
+    string digest = 4;
+}
+
+message DNAME {
+    string target = 1;
+}
+
+message DNSKEY {
+    uint32 flags = 1;
+    uint32 protocol = 2;
+    uint32 algorithm = 3;
+    string publicKey = 4;
+}
+
+message DS {
+    uint32 keyTag = 1;
+    uint32 algorithm = 2;
+    uint32 digestType = 3;
+    string digest = 4;
+    
+}
+
+message EID {
+    string endpoint = 1;
+}
+
+message EUI48 {
+    uint64 address = 1;
+}
+
+message EUI64 {
+    uint64 address = 1;
+}
+
+message GID {
+    uint32 gid = 1;
+}
+
+message GPOS {
+    string latitude = 1;
+    string longitude = 2;
+    string altitude = 3;
+}
+
+message HINFO {
+    string cpu = 1;
+    string os = 2;
+}
+
+message HIP {
+    uint32 hitLength = 1;
+    uint32 publicKeyAlgorithm = 2;
+    uint32 PublicKeyLength = 3;
+    string hit = 4;
+    string publicKey = 5;
+    repeated string RendezvousServers = 6;
+}
+
+message KEY {
+    uint32 flags = 1;
+    uint32 protocol = 2;
+    uint32 algorithm = 3;
+    string publicKey = 4;
+}
+
+message KX {
+    uint32 preference = 1;
+    string exchanger = 2;
+}
+
+message L32 {
+    uint32 preference = 1;
+    string Locator32 = 2;
+}
+
+message L64 {
+    uint32 preference = 1;
+    uint64 Locator64 = 2;
+}
+
+message LOC {
+    uint32 Version = 1;
+    uint32 Size = 2;
+    uint32 HorizPre = 3;
+    uint32 VertPre = 4;
+    uint32 Latitude = 5;
+    uint32 Longitude = 6;
+    uint32 Altitude = 7;
+}
+
+message LP {
+    string FQDN = 1;
+    uint32 preference = 2;
+}
+
+message MB {
+    string mb = 1;
+}
+
+message MD {
+    string md = 1;
+}
+
+message MF {
+    string mf = 1;
+}
+
+message MG {
+    string mg = 1;
+}
+
+message MINFO {
+    string rmail = 1;
+    string email = 2;
+}
+
+message MR {
+    string mr = 1;
+}
+
+message MX {
+    uint32 preference = 1;
+    string mx = 2;
+}
+
+message NAPTR {
+    uint32 order = 1;
+    uint32 preference = 2;
+    string flags = 3;
+    string service = 4;
+    string regexp = 5;
+    string replacement = 6;
+}
+
+message NID {
+    uint32 preference = 1;
+    uint64 nodeid = 2;
+}
+
+message NIMLOC {
+    string locator = 1;
+}
+
+message NINFO {
+    repeated string ZSDATA = 1;
+}
+
+message NS {
+    string ns = 1;
+}
+
+message NSAPPTR {
+    string ptr = 1;
+}
+
+message NSEC {
+    string nextDomain = 1;
+    repeated uint32 typeBitMap = 2;
+}
+
+message NSEC3 {
+    uint32 hash = 1;
+    uint32 flags = 2;
+    uint32 iterations = 3;
+    uint32 saltLength = 4;
+    string salt = 5;
+    uint32 hashLength = 6;
+    string nextDomain = 7;
+    repeated uint32 typeBitMap = 8;
+}
+
+message NSEC3PARAM {
+    uint32 hash = 1;
+    uint32 flags = 2;
+    uint32 iterations = 3;
+    uint32 saltLength = 4;
+    string salt = 5;
+}
+
+message OPENPGPKEY {
+    string publicKey = 1;
+}
+
+//TODO:
+message OPT {
+
+}
+
+message PTR {
+    string ptr = 1;
+}
+
+message PX {
+    uint32 preference = 1;
+    string map822 = 2;
+    string mapx400 = 3;
+}
+
+message RKEY {
+    uint32 flags = 1;
+    uint32 protocol = 2;
+    uint32 algorithm = 3;
+    string publicKey = 4;
+}
+
+message RP {
+    string mbox = 1;
+    string txt = 2;
+}
+
+message RRSIG {
+    uint32 typeCovered = 1;
+    uint32 algorithm = 2;
+    uint32 labels = 3;
+    uint32 origttl = 4;
+    uint32 expiration = 5;
+    uint32 inception = 6;
+    uint32 keytag = 7;
+    string signerName = 8;
+    string Signature = 9;
+}
+
+message RT {
+    uint32 preference = 1;
+    string host = 2;
+}
+
+message SIG {
+    uint32 typeCovered = 1;
+    uint32 algorithm = 2;
+    uint32 labels = 3;
+    uint32 origttl = 4;
+    uint32 expiration = 5;
+    uint32 inception = 6;
+    uint32 keytag = 7;
+    string signerName = 8;
+    string Signature = 9;
+}
+
+message SMIMEA {
+    uint32 usage = 1;
+    uint32 selector = 2;
+    uint32 matchingType = 3;
+    string certificate = 4;
+}
+
+message SOA {
+    string ns = 1;
+    string mbox = 2;
+    uint32 serial = 3;
+    uint32 refresh = 4;
+    uint32 retry = 5;
+    uint32 expire = 6;
+    uint32 minttl = 7;
+}
+
+message SPF {
+    repeated string txt = 1;
+}
+
+message SRV {
+    uint32 priority = 1;
+    uint32 weight = 2;
+    uint32 port = 3;
+    string target = 4;
+}
+
+message SSHFP {
+    uint32 algorithm = 1;
+    uint32 type = 2;
+    string fingerprint = 3;
+}
+
+message TA {
+    uint32 keyTag = 1;
+    uint32 algorithm = 2;
+    uint32 digestType = 3;
+    string digest = 4;
+}
+
+message TALINK {
+    string previousName = 1;
+    string nextName = 2;
+}
+
+message TKEY {
+    string algorithm = 1;
+    uint32 inception = 2;
+    uint32 expiration = 3;
+    uint32 mode = 4;
+    uint32 error = 5;
+    uint32 keySize = 6;
+    string key = 7;
+    uint32 otherLen = 8;
+    string otherData = 9;
+}
+
+message TLSA {
+    uint32 usage = 1;
+    uint32 selector = 2;
+    uint32 matchingType = 3;
+    string certificate = 4;
+}
+
+message TSIG {
+    string algorithm = 1;
+    uint64 timeSigned = 2;
+    uint32 fudge = 3;
+    uint32 MACSize = 4;
+    string MAC = 5;
+    uint32 origID = 6;
+    uint32 error = 7;
+    uint32 otherLen = 8;
+    string otherData = 9;
+}
+
+message TXT {
+    repeated string txt = 1;
+}
+
+message UID {
+    uint32 uid = 1;
+}
+
+message UINFO {
+    string uinfo = 1;
+}
+
+message URI {
+    uint32 priority = 1;
+    uint32 weight = 2;
+    string target = 3;
+}
+
+message X25 {
+    string PSDNAddress = 1;
+}
+
+message ResourceRecord {
+    Header header = 1;
+    oneof record {
+        A a = 2; 
+        AAAA aaaa = 3;
+        AFSDB afsdb = 4;
+        AVC avc = 5; 
+        CAA caa = 6;
+        CDNSKEY cdnskey = 7;
+        CDS cds = 8;
+        CERT cert = 9;
+        CNAME cname = 10;
+        CSYNC csync = 11;
+        DHCID dhcid = 12; 
+        DLV dlv = 13;
+        DNAME dname = 14;
+        DNSKEY dnskey = 15;
+        DS ds = 16; 
+        EID eid = 17;
+        EUI48 eui48 = 18;
+        EUI64 eui64 = 19;
+        GID gid = 20;
+        GPOS gpos = 21; 
+        HINFO hinfo = 22; 
+        HIP hip = 23; 
+        KEY key = 24; 
+        KX kx = 25;
+        L32 l32 = 26;
+        L64 l64 = 27;
+        LOC loc = 28; 
+        LP lp = 29;
+        MB mb = 30; 
+        MD md = 31; 
+        MF mf = 32;
+        MG mg = 33;
+        MINFO minfo = 34;
+        MR mr = 35;
+        MX mx = 36;
+        NAPTR naptr = 37; 
+        NID nid = 38;
+        NIMLOC nimloc = 39;
+        NINFO ninfo = 40;
+        NS ns = 41;
+        NSAPPTR nsapptr = 42;
+        NSEC nsec = 43;
+        NSEC3 nsec3 = 44;
+        NSEC3PARAM nsec3param = 45;
+        OPENPGPKEY openpgpkey = 46;
+        OPT opt = 47;
+        PTR ptr = 48;
+        PX px = 49;
+        RKEY rkey = 50; 
+        RP rp = 51;
+        RRSIG rrsig = 52;
+        RT rt = 53;
+        SIG sig = 54;
+        SMIMEA smimea = 55;
+        SOA soa = 56;
+        SPF spf = 57;
+        SRV srv = 58;
+        SSHFP sshfp = 59; 
+        TA ta = 60;
+        TALINK talink = 61;
+        TKEY tkey = 62;
+        TLSA tlsa = 63;
+        TSIG tsig = 64;
+        TXT txt = 65;
+        UID uid = 66;
+        UINFO uinfo = 67;
+        URI uri = 68;
+        X25 x25 = 69;
+     }
+}
+
+message ResourceRecords {
+    repeated ResourceRecord records = 1;
+}

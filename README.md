@@ -25,8 +25,8 @@ This application is intended to be ran outside of kubernetes so that it can be b
 Below is an example cmd to run the docker container...
 
 ```
-docker build -t lemondns .
-docker run -itd --name lemondns --restart always --net=host lemondns -database <MONGODB_ADDR>
+docker build -t dnsserver .
+docker run -itd --name dnsserver --restart always --net=host dnsserver -database <MONGODB_ADDR>
 ```
 
 ### BUILD

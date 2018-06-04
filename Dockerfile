@@ -1,3 +1,3 @@
 FROM scratch
-ADD dns /
-ENTRYPOINT [ "/dns" ]
+ADD dns-server /
+ENTRYPOINT [ "/dns-server" ]
