@@ -1,8 +1,13 @@
-# REPLACE ASAP
-Since this is a temporary solution I will provide little documentation here.
+# drekle/dns
+A DNS server made for machines, not people.  DNS updates can event driven, but they require an API to do this.  The goal here is to use GRPC to create client libraries in all languages including a HTTP/JSON Rest implementation.
 
-## Lemon DNS
-This is a dns server that is based on github.com/miekg/dns.  
+## My use case
+On the creation of an ingress resource in kubernetes you might want to notify a DNS server to create an A record so that traffic could be routed to ingress controllers within the cluster from inside your organization.  A conditional forwarder can be used to route to the dns server provided here, and a separate service ( which I will also provide ) will update this dns server based off of ingresses CRUD events within the cluster.
+
+## Docker
+The build container will be available at drekle/dns.
+
+This makes use heavily on the dns library github.com/miekg/dns.  See this page for reference.  
 
 This DNS server listens on a couple of ports by default.
 53 TCP - DNS
