@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
+	"github.com/drekle/dns-server/api"
 	pb "github.com/drekle/dns-server/pkg/lib/go/v1"
 	"github.com/miekg/dns"
 )
@@ -51,7 +52,7 @@ func serveSwagger(mux *http.ServeMux) {
 	mux.Handle(prefix, http.StripPrefix(prefix, fileServer))
 }
 
-func startDNSServer(dnsServer *server) {
+func startDNSServer(dnsServer *api.Server) {
 	go func() {
 		udpSrv := &dns.Server{Addr: ":" + strconv.Itoa(53), Net: "udp"}
 		udpSrv.Handler = dnsServer
@@ -69,7 +70,7 @@ func startDNSServer(dnsServer *server) {
 	}()
 }
 
-func startGRPCServer(port string, dnsServer *server) *grpc.Server {
+func startGRPCServer(port string, dnsServer *api.Server) *grpc.Server {
 	s := grpc.NewServer()
 	go func() {
 		pb.RegisterDNSServiceServer(s, dnsServer)
@@ -92,7 +93,7 @@ func main() {
 	flag.Parse()
 
 	//Listen on 53 TCP/UDP for dns forever
-	dnsServer := NewServer(*database)
+	dnsServer := api.NewServer(*database)
 	startDNSServer(dnsServer)
 	//Listen UDP
 
