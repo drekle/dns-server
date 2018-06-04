@@ -89,8 +89,12 @@ func (store *MongoDB) ReadRecord(ctx context.Context, name string) ([]dns.RR, er
 			for _, record := range records {
 				qs = append(qs, record)
 			}
-			// case dns.TypeAAAA:
-			// 	breakoutRecords(query, []*dns.AAAA{}, "", "\t")
+		case dns.TypeAAAA:
+			var records []*dns.AAAA
+			query.All(&records)
+			for _, record := range records {
+				qs = append(qs, record)
+			}
 			// case dns.TypeAFSDB:
 			// 	breakoutRecords(query, []*dns.AFSDB{}, "", "\t")
 			// case dns.TypeANY:
